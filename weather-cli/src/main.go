@@ -8,7 +8,13 @@ func main() {
 
 	location := readInput()
 
-	getCurrentWeather(location)
+	weather, err := getCurrentWeather(location)
+
+	if err != nil {
+		fmt.Printf("%v\n", err)
+	} else {
+		fmt.Printf("%v°C in %v, %v\n", weather.Temp, weather.Location, weather.Condition)
+	}
 }
 
 func readInput() string {

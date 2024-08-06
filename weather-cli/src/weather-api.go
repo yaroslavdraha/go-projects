@@ -1,10 +1,10 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"os"
 )
@@ -63,32 +63,61 @@ type Condition struct {
 	Code int    `json:"code"`
 }
 
-func getCurrentWeather(location string) {
-	apiKey, err := getApiKey()
+type ErrorResponse struct {
+	Error Error `json:"error"`
+}
 
+type Error struct {
+	Code    int    `json:"code"`
+	Message string `json:"message"`
+}
+
+type CurrentWeather struct {
+	Temp      float64
+	Condition string
+	Location  string
+}
+
+func getCurrentWeather(location string) (*CurrentWeather, error) {
+	apiKey, err := getApiKey()
 	if err != nil {
-		fmt.Printf("%v", err)
-		return
+		return nil, err
 	}
 
 	url := fmt.Sprintf("%s?q=%s&key=%s", WEATHER_API_CURRENT_ENDPOINT, location, apiKey)
-
-	fmt.Printf("%v\n", url)
-
 	response, err := http.Get(url)
 
 	if err != nil {
-		log.Fatalln(err)
+		return nil, fmt.Errorf("failed to make GET request: %w", err)
 	}
+
+	defer response.Body.Close()
 
 	body, err := io.ReadAll(response.Body)
 	if err != nil {
-		log.Fatalln(err)
+		return nil, fmt.Errorf("failed to read response body: %w", err)
 	}
 
-	sb := string(body)
-	log.Printf(sb)
+	if response.StatusCode == http.StatusOK {
+		var successResponse WeatherData
+		if err := json.Unmarshal(body, &successResponse); err != nil {
+			return nil, fmt.Errorf("error to parse success json: %w", err)
+		}
 
+		currentWeather := CurrentWeather{
+			Location:  successResponse.Location.Name,
+			Temp:      successResponse.Current.TempC,
+			Condition: successResponse.Current.Condition.Text,
+		}
+		return &currentWeather, nil
+	} else {
+		var errorResp ErrorResponse
+		if err := json.Unmarshal(body, &errorResp); err != nil {
+			return nil, fmt.Errorf("error to parse error json: %w", err)
+		}
+
+		return nil, errors.New(errorResp.Error.Message)
+	}
 }
 
 func getApiKey() (string, error) {
