@@ -1,4 +1,4 @@
-module go-hot-chatbot
+module todo-app
 
 go 1.22.4
 

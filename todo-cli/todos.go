@@ -5,6 +5,7 @@ import (
 	"math/rand/v2"
 	"regexp"
 	"strconv"
+	"time"
 
 	"github.com/AlecAivazis/survey/v2"
 )
@@ -13,6 +14,10 @@ type Todo struct {
 	ID   int
 	Name string
 	Done bool
+}
+
+func (todo Todo) printTodo() {
+	fmt.Printf("qwe %v", todo.Name)
 }
 
 func addNewTodo(todos []Todo) []Todo {
@@ -25,6 +30,9 @@ func addNewTodo(todos []Todo) []Todo {
 	}
 
 	todos = append(todos, newTodo)
+
+	wg.Add(1)
+	go saveTodoInDB(newTodo)
 
 	return todos
 }
@@ -97,4 +105,12 @@ func printTodos(todos []Todo) {
 
 		fmt.Printf("ID: %d, Title: %s, Status: %s\n", todo.ID, todo.Name, status)
 	}
+}
+
+func saveTodoInDB(todo Todo) {
+	time.Sleep(10 * time.Second)
+
+	fmt.Println("Todo was saved to DB")
+
+	wg.Done()
 }
