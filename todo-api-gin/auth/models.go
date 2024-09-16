@@ -1,9 +1,16 @@
 package auth
 
-import "gorm.io/gorm"
+import (
+	"todo-api-gin/libs/database"
+)
 
 type User struct {
-	gorm.Model
-	Username string `json:"username"`
-	Password string `json:"password"`
+	database.Model
+	Email    string `json:"email" gorm:"uniqueIndex"`
+	Password string
+}
+
+type CreateUser struct {
+	Email    string `json:"email" binding:"required,email"`
+	Password string `json:"password" binding:"required"`
 }
