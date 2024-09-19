@@ -1,7 +1,6 @@
 package auth
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
 	"net/http"
@@ -12,8 +11,6 @@ import (
 type AuthHandlers struct{}
 
 func (h *AuthHandlers) Register(c *gin.Context) {
-	fmt.Println("Create")
-
 	// get body from request and parse
 	var body CreateUser
 
@@ -44,7 +41,17 @@ func (h *AuthHandlers) Register(c *gin.Context) {
 		return
 	}
 
-	// todo: create and encode password
-
 	c.JSON(http.StatusCreated, nil)
+}
+
+func (h *AuthHandlers) Login(c *gin.Context) {
+	// parse json
+	var body LoginUser
+	if err := c.ShouldBindJSON(&body); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// todo:  get user from db by checking if password is correct
+	// todo: generate gwt token
 }
